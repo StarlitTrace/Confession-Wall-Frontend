@@ -1,19 +1,19 @@
 <template>
   <nav class="navbar">
     <div class="navbar-container">
-      <span class="navbar-left">
+      <div class="navbar-left">
         <a href="/" class="navbar-brand">
           <img src="@/assets/icons/sparkling-heart.png" alt="Sparkling Heart" class="navbar-logo" />
           <span class="navbar-title">表白墙</span>
         </a>
         <ul class="navbar-links">
-          <li><a href="/post/new">表白</a></li>
-          <li><a href="/image">图床</a></li>
-          <li><a href="/user/profile">主页</a></li>
+          <li><a href="/post/new"><img src="@/assets/icons/heart-24.svg" alt="表白" height="20">表白</a></li>
+          <li><a href="/image"><img src="@/assets/icons/file-media-24.svg" alt="表白" height="20">图床</a></li>
+          <li><a href="/user/profile"><img src="@/assets/icons/person-24.svg" alt="表白" height="20">主页</a></li>
         </ul>
-      </span>
+      </div>
 
-      <div class="nabar-right">
+      <div class="navbar-right">
         <ul class="navbar-links">
           <li><a href="/auth/register">注册</a></li>
           <li><a href="/auth/login">登录</a></li>
@@ -43,13 +43,13 @@
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: baseline;
 }
 
-.navbar-left {
+.navbar-left, .navbar-right {
   display: flex;
-  align-items: center;
-  gap: 2rem; /* 在 Logo 和导航链接之间添加间距 */
+  align-items: baseline;
+  gap: 2rem;
 }
 
 .navbar-brand {
@@ -59,7 +59,13 @@
   text-decoration: none;
   display: flex;
   align-items: center;
-  gap: 0.5rem; /* 在图标和文字之间添加一些间距 */
+  gap: 0.5rem;
+}
+
+.navbar-brand :deep(svg) {
+  width: 24px;
+  height: 24px;
+  fill: currentColor; /* 使图标颜色与文本颜色保持一致 */
 }
 
 .navbar-logo {
@@ -89,5 +95,8 @@
   transition: color 0.3s ease, border-color 0.3s ease;
   padding-bottom: 5px;
   border-bottom: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
 }
 </style>
