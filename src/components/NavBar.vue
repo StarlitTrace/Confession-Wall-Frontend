@@ -29,7 +29,7 @@
 .navbar {
   width: 100%;
   background-color: #ffffff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   padding: .9rem 2rem;
   position: fixed;
   top: 0;
@@ -40,7 +40,7 @@
 
 .navbar-container {
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 0 5%;
   display: flex;
   justify-content: space-between;
   align-items: baseline;
