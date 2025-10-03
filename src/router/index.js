@@ -14,49 +14,73 @@ const routes = [
     path: '/',
     name: 'Homepage',
     component: Homepage,
-    meta: { requiresAuth: false }
+    meta: {
+      title: '首页',
+      requiresAuth: false
+    }
   },
   {
     path: '/auth/register',
     name: 'Register',
     component: Register,
-    meta: { requiresAuth: false }
+    meta: {
+      title: '用户注册',
+      requiresAuth: false
+    }
   },
   {
     path: '/auth/login',
     name: 'Login',
     component: Login,
-    meta: { requiresAuth: false }
+    meta: {
+      title: '用户登录',
+      requiresAuth: false
+    }
   },
   {
     path: '/user/profile',
     name: 'Profile',
     component: Profile,
-    meta: { requiresAuth: true }
+    meta: {
+      title: '个人主页',
+      requiresAuth: true
+    }
   },
   {
     path: '/user/setting',
     name: 'Setting',
     component: Setting,
-    meta: { requiresAuth: true }
+    meta: {
+      title: '用户设置',
+      requiresAuth: true
+    }
   },
   {
     path: '/post/new',
     name: 'Publish',
     component: Publish,
-    meta: { requiresAuth: true }
+    meta: {
+      title: '新建表白',
+      requiresAuth: true
+    }
   },
   {
     path: '/post/:postId',
     name: 'Post',
     component: Post,
-    meta: { requiresAuth: true }
+    meta: {
+      title: '首页',
+      requiresAuth: true
+    }
   },
   {
     path: '/image',
     name: 'ImageHosting',
     component: ImageHosting,
-    meta: { requiresAuth: true }
+    meta: {
+      title: '图床',
+      requiresAuth: true
+    }
   }
 ];
 
@@ -67,6 +91,12 @@ const router = createRouter({
 
 // 全局前置守卫
 router.beforeEach((to, from, next) => {
+  if (to.meta.title) {
+    document.title = to.meta.title + '- 表白墙';
+  } else {
+    document.title = '默认标题';
+  }
+
   const isAuthenticated = (localStorage.getItem('token') != null); // 检查本地存储中的 token
 
   if (to.meta.requiresAuth && !isAuthenticated) {
