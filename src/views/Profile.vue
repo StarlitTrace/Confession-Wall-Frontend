@@ -1,8 +1,517 @@
-<template>
+<<template>
+  <div class="profile-container">
+    <div class="profile-header" :style="{ backgroundImage: 'url(/default-background.jpg)' }">
+      <div class="profile-info">
+        <div class="avatar-container">
+          <img :src="userProfile?.avatar || '/default-avatar.jpg'" :alt="userProfile?.nickname" class="avatar">
+        </div>
+        <div class="user-info">
+          <h1 class="username">{{ userProfile?.username || '加载中...' }}</h1>
+          <p class="nickname">{{ userProfile?.nickname || '加载中...' }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="confessions-container">
+      <div class="confessions-header">
+        <h2>表白列表</h2>
+        <div class="page-size-selector">
+          每页显示：
+          <select v-model="pageLimit">
+            <option value="5">5条</option>
+            <option value="10">10条</option>
+            <option value="20">20条</option>
+            <option value="50">50条</option>
+            <option value="100">100条</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="confessions-list" v-if="confessions.length > 0">
+        <div v-for="confession in confessions" :key="confession.ID" class="confession-item">
+          <div class="confession-main">
+            <router-link :to="`/profile/${confession.userId}`" class="avatar-link">
+              <img :src="confession.authorAvatar || '/default-avatar.jpg'" :alt="confession.authorName" class="author-avatar">
+            </router-link>
+            <div class="confession-content">
+              <div class="content-main">
+                <div class="content-left">
+                  <div class="id-section">
+                    <router-link :to="`/post/${confession.ID}`" class="confession-id-link">#{{ confession.ID }}</router-link>
+                    <div class="stats">
+                      <span class="stat-item">
+                        <img src="@/assets/icons/eye-24.svg" alt="views" class="stat-icon">
+                        {{ confession.viewCount}}
+                      </span>
+                      <span class="stat-item">
+                        <img src="@/assets/icons/thumbsup-24.svg" alt="likes" class="stat-icon">
+                        {{ confession.likeCount }}
+                      </span>
+                      <span class="stat-item">
+                        <img src="@/assets/icons/comment-24.svg" alt="comments" class="stat-icon">
+                        {{ confession.commentCount || 0 }} <!--等待后端添加 commentCount 字段-->
+                      </span>
+                    </div>
+                    <div class="author-info">
+                      <router-link :to="`/profile/${confession.userId}`" class="author-link">
+                        <span class="author-name">{{ confession.authorName }}</span>
+                      </router-link>
+                    </div>
+                  </div>
+                </div>
+                <div class="content-right">
+                  <div class="time-info">
+                    <div>发布于 {{ formatDate(confession.publishedAt) }}</div>
+                    <div v-if="confession.changedAt !== confession.publishedAt">
+                      修改于 {{ formatDate(confession.changedAt) }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div v-else class="empty-state">
+        暂无表白内容
+      </div>
+
+      <div class="pagination" v-if="totalPages > 1">
+        <button 
+          :disabled="currentPage === 1" 
+          @click="changePage(currentPage - 1)"
+        >上一页</button>
+        <span>{{ currentPage }} / {{ totalPages }}</span>
+        <button 
+          :disabled="currentPage === totalPages" 
+          @click="changePage(currentPage + 1)"
+        >下一页</button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
+import { ref, onMounted, watch } from 'vue';
+import { useRoute } from 'vue-router';
+import { useUserStore } from '@/stores/userStore';
+import request from '@/utils/request';
+
+const route = useRoute();
+const userStore = useUserStore();
+const userId = ref(route.params.userId);
+const userProfile = ref(null);
+const confessions = ref([]);
+const currentPage = ref(1);
+const pageLimit = ref(10);
+const totalPages = ref(0);
+
+// 格式化日期
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+};
+
+// 获取用户信息
+const fetchUserProfile = async () => {
+  try {
+    // 如果是当前用户，直接使用 store 中的信息
+    if (userStore.userInfo && userStore.userInfo.user_id.toString() === userId.value) {
+      userProfile.value = userStore.userInfo;
+    } else {
+      const response = await request.get(`/api/user/profile/${userId.value}`);
+      userProfile.value = response.data;
+    }
+    // 更新页面标题
+    document.title = `${userProfile.value.username} 的个人主页`;
+  } catch (error) {
+    console.error('获取用户信息失败:', error);
+  }
+};
+
+// 获取表白列表
+// 获取作者昵称
+const fetchAuthorInfo = async (userId) => {
+  try {
+    const result = await userStore.fetchUserById(userId);
+    if (result.success) {
+      return result.data.nickname;
+    }
+    return '未知用户';
+  } catch (error) {
+    console.error('获取用户信息失败:', error);
+    return '未知用户';
+  }
+};
+
+const fetchConfessions = async () => {
+  try {
+    const response = await request.get('/api/confession/user', {
+      params: {
+        user_id: userId.value,
+        page: currentPage.value,
+        pageLimit: pageLimit.value
+      }
+    });
+
+    // 按 ID 降序排列表白
+    const sortedConfessions = response.data.data.sort((a, b) => b.ID - a.ID);
+
+    // 为每个表白获取作者昵称
+    const confessionsWithNickname = await Promise.all(
+      sortedConfessions.map(async (confession) => {
+        const nickname = await fetchAuthorInfo(confession.userId);
+        return {
+          ...confession,
+          authorName: nickname
+        };
+      })
+    );
+
+    confessions.value = confessionsWithNickname;
+
+    // 如果后端返回了总数，使用后端返回的总数计算总页数
+    totalPages.value = response.data.total 
+      ? Math.ceil(response.data.total / pageLimit.value)
+      : Math.ceil(confessions.value.length / pageLimit.value);
+  } catch (error) {
+    console.error('获取表白列表失败:', error);
+  }
+};
+
+// 切换页码
+const changePage = (page) => {
+  currentPage.value = page;
+};
+
+// 监听路由参数变化
+watch(() => route.params.userId, (newId) => {
+  userId.value = newId;
+  currentPage.value = 1;
+  fetchUserProfile();
+  fetchConfessions();
+});
+
+// 监听分页参数变化
+watch([currentPage, pageLimit], () => {
+  fetchConfessions();
+});
+
+// 初始化
+onMounted(() => {
+  fetchUserProfile();
+  fetchConfessions();
+});
 </script>
 
 <style scoped>
-</style>
+.profile-container {
+  min-height: calc(100vh - 120px);
+}
+
+.profile-header {
+  height: 180px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  padding: 2rem;
+  color: white;
+  display: flex;
+  align-items: flex-end;
+  background-color: rgba(0, 0, 0, 0.5);
+  background-blend-mode: multiply;
+  border-radius: 0 0 16px 16px;
+  margin: 0 2rem;
+  overflow: hidden;
+}
+
+.profile-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom,
+    rgba(0, 0, 0, 0.7) 0%,
+    rgba(0, 0, 0, 0.5) 50%,
+    rgba(0, 0, 0, 0.6) 100%
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+
+.profile-info {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  position: relative;
+  z-index: 2;
+}
+
+.avatar-container {
+  margin-bottom: -1.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+.avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 4px solid white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  object-fit: cover;
+}
+
+.user-info {
+  padding-bottom: 1rem;
+}
+
+.username {
+  font-size: 2rem;
+  margin: 0;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.nickname {
+  font-size: 1.1rem;
+  margin: 0.3rem 0 0;
+  opacity: 0.9;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.confessions-container {
+  max-width: 1200px;
+  margin: 3rem auto;
+  padding: 0 2rem;
+}
+
+.confessions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.page-size-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.page-size-selector select {
+  padding: 0.3rem;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.confession-item {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  transition: transform 0.2s ease;
+}
+
+.confession-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.confession-main {
+  display: flex;
+  gap: 1rem;
+  flex: 1;
+}
+
+.avatar-link {
+  display: block;
+  text-decoration: none;
+  position: relative;
+  width: 64px;
+  height: 64px;
+}
+
+.avatar-link::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  width: calc(100% + 4px);
+  height: calc(100% + 4px);
+  border-radius: 50%;
+  border: 2px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.avatar-link:hover::after {
+  border-color: #3498db;
+}
+
+.author-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.avatar-link:hover .author-avatar {
+  transform: scale(1.05);
+}
+
+.confession-content {
+  flex: 1;
+  padding-left: 1rem;
+}
+
+.content-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.content-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.id-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.confession-id-link {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.confession-id-link:hover {
+  color: #3498db;
+}
+
+.stats {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.stat-icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.7;
+}
+
+.author-info {
+  margin-top: 0.5rem;
+}
+
+.author-link {
+  text-decoration: none;
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  color: #666;
+  transition: color 0.2s ease;
+}
+
+.author-link:hover {
+  color: #3498db;
+}
+
+.author-id {
+  font-size: 0.9rem;
+}
+
+.author-name {
+  font-size: 0.9rem;
+  color: inherit;
+}
+
+.content-right {
+  text-align: right;
+  margin-top: 1.5rem;
+}
+
+.time-info {
+  font-size: 0.9rem;
+  color: #999;
+}
+
+.time-info div {
+  line-height: 1.6;
+  margin-bottom: 0.3rem;
+}
+
+.time-info div:last-child {
+  margin-bottom: 0;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.pagination button {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: #3498db;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.pagination button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.pagination button:hover:not(:disabled) {
+  background: #2980b9;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: #666;
+  font-size: 1.1rem;
+}
+</style>]]>

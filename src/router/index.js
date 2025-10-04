@@ -8,7 +8,6 @@ import Profile from '@/views/Profile.vue';
 import Setting from '@/views/Setting.vue';
 import Post from '@/views/Post.vue';
 import Publish from '@/views/Publish.vue';
-import ImageHosting from '@/views/ImageHosting.vue';
 
 const routes = [
   {
@@ -39,21 +38,21 @@ const routes = [
     }
   },
   {
-    path: '/user/profile',
-    name: 'Profile',
-    component: Profile,
-    meta: {
-      title: '个人主页',
-      requiresAuth: true
-    }
-  },
-  {
     path: '/user/setting',
     name: 'Setting',
     component: Setting,
     meta: {
       title: '用户设置',
       requiresAuth: true
+    }
+  },
+  {
+    path: '/user/:userId',
+    name: 'Profile',
+    component: Profile,
+    meta: {
+      dynamicTitle: true,
+      requiresAuth: false
     }
   },
   {
@@ -71,15 +70,6 @@ const routes = [
     component: Post,
     meta: {
       title: '首页',
-      requiresAuth: true
-    }
-  },
-  {
-    path: '/image',
-    name: 'ImageHosting',
-    component: ImageHosting,
-    meta: {
-      title: '图床',
       requiresAuth: true
     }
   }
@@ -100,7 +90,6 @@ router.beforeEach((to, from, next) => {
 
   // 使用 Pinia store 检查登录状态
   const userStore = useUserStore();
-
   
   if (to.meta.requiresAuth) { // 需要认证的路由
     if (!userStore.isLoggedIn) { // 未登录，重定向到登录页     
@@ -112,8 +101,8 @@ router.beforeEach((to, from, next) => {
       next();
     }
   } else {
-    if (to.name === 'Login' && userStore.isLoggedIn) { // 如果已登录用户访问登录页，重定向到首页
-      next({ name: 'Homepage' });
+    if ((to.name === 'Login' || to.name === 'Register')&& userStore.isLoggedIn) {
+      next({ name: 'Homepage' }); // 如果已登录用户访问登录页或首页，重定向到首页
     } else {
       next();
     }

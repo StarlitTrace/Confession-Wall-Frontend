@@ -8,8 +8,7 @@
         </router-link>
         <ul class="navbar-links">
           <li><router-link to="/post/new"><img src="@/assets/icons/heart-24.svg" alt="表白" height="20">表白</router-link></li>
-          <li><router-link to="/image"><img src="@/assets/icons/file-media-24.svg" alt="图床" height="20">图床</router-link></li>
-          <li><router-link to="/user/profile"><img src="@/assets/icons/person-24.svg" alt="个人主页" height="20">主页</router-link></li>
+          <li><router-link :to="'/user/' + userStore.userInfo?.user_id"><img src="@/assets/icons/person-24.svg" alt="个人主页" height="20">主页</router-link></li>
         </ul>
       </div>
 
@@ -110,6 +109,7 @@ const handleLogout = () => {
   top: 0;
   left: 0;
   box-sizing: border-box;
+  z-index: 1000;
 }
 
 .navbar-container {
@@ -185,7 +185,6 @@ const handleLogout = () => {
 
 .avatar-wrapper {
   position: relative;
-  z-index: 1001;
   display: flex;
   align-items: center;
   height: 40px;
@@ -218,14 +217,27 @@ const handleLogout = () => {
 
 .dropdown-menu {
   position: absolute;
-  top: calc(100% + 5px);
+  top: calc(100% + 8px);
   right: -10px;
-  width: 200px;
+  width: 220px;
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
   padding: 1rem;
-  z-index: 1000;
+  z-index: 1001;
+  transform-origin: top center;
+  animation: dropdownFadeIn 0.2s ease;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .user-info {
