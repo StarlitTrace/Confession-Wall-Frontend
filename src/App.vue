@@ -17,7 +17,7 @@ import Footer from '@/components/Footer.vue';
 
 <style scoped>
 .app-container {
-  padding-top: 66px; /* 为固定的导航栏留出空间 */
+  padding-top: 52px; /* 为固定的导航栏留出空间 */
 }
 
 .main-body {

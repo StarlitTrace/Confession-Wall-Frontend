@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import { useUserStore } from '@/stores/userStore';
 
 import Homepage from '@/views/Homepage.vue';
 import Register from '@/views/Register.vue';
@@ -97,12 +98,25 @@ router.beforeEach((to, from, next) => {
     document.title = '默认标题';
   }
 
-  const isAuthenticated = (localStorage.getItem('token') != null); // 检查本地存储中的 token
+  // 使用 Pinia store 检查登录状态
+  const userStore = useUserStore();
 
-  if (to.meta.requiresAuth && !isAuthenticated) {
-    next({ name: 'Login' });
+  
+  if (to.meta.requiresAuth) { // 需要认证的路由
+    if (!userStore.isLoggedIn) { // 未登录，重定向到登录页     
+      next({
+        name: 'Login',
+        query: { redirect: to.fullPath } // 保存原始目标路由，登录后可跳转回去
+      });
+    } else {
+      next();
+    }
   } else {
-    next();
+    if (to.name === 'Login' && userStore.isLoggedIn) { // 如果已登录用户访问登录页，重定向到首页
+      next({ name: 'Homepage' });
+    } else {
+      next();
+    }
   }
 });
 
