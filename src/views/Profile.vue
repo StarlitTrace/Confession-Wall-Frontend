@@ -1,4 +1,4 @@
-<<template>
+<template>
   <div class="profile-container">
     <div class="profile-header" :style="{ backgroundImage: 'url(/default-background.jpg)' }">
       <div class="profile-info">
