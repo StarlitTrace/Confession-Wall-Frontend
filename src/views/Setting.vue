@@ -71,7 +71,7 @@
         <input
           type="password"
           v-model="passwordForm.newPassword"
-          placeholder="8-20位字符，必须包含字母和数字"
+          placeholder="8~20 位字符，必须包含字母和数字"
         >
       </div>
 

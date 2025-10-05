@@ -52,7 +52,7 @@ const routes = [
     component: Profile,
     meta: {
       dynamicTitle: true,
-      requiresAuth: false
+      requiresAuth: true
     }
   },
   {

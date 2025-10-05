@@ -30,7 +30,7 @@ export const useUserStore = defineStore('user', () => {
   // 注册方法
   const register = async (registerInfo: RegisterInfo) => {
     try {
-      const response = await request.post('/api/auth/register', registerInfo);
+      const response = await request.post<RegisterResponse>('/api/auth/register', registerInfo);
       return {
         success: true,
         data: response.data,
@@ -90,18 +90,19 @@ export const useUserStore = defineStore('user', () => {
     if (!token.value) return;
 
     try {
-      const response = await request.get('/api/user/profile');
+      const response = await request.get<UserProfile>('/api/user/profile');
 
-      if (response.data.code === 401) {
+      if (response.status === 401) {
         logout();
-        return { success: false, message: response.data.msg };
+        return { success: false, message: response.statusText };
       }
+
 
       userInfo.value = response.data;
       return { success: true, data: response.data };
     } catch (error: any) {
       console.error('获取用户信息失败:', error);
-      // 如果token无效，清除登录状态
+      // 如果 token 无效，清除登录状态
       if (error.response?.status === 401) {
         logout();
       }

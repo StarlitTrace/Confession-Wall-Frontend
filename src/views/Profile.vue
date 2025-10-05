@@ -6,8 +6,7 @@
           <img :src="userProfile?.avatar || '/default-avatar.jpg'" :alt="userProfile?.nickname" class="avatar">
         </div>
         <div class="user-info">
-          <h1 class="username">{{ userProfile?.username || '加载中...' }}</h1>
-          <p class="nickname">{{ userProfile?.nickname || '加载中...' }}</p>
+          <h1 class="username">{{ userProfile?.nickname || '加载中...' }}</h1>
         </div>
       </div>
     </div>
@@ -281,18 +280,11 @@ onMounted(() => {
   padding-bottom: 1rem;
 }
 
-.username {
+.nickname {
   font-size: 2rem;
   margin: 0;
   font-weight: 600;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.nickname {
-  font-size: 1.1rem;
-  margin: 0.3rem 0 0;
-  opacity: 0.9;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .confessions-container {
