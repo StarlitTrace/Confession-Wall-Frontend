@@ -9,7 +9,7 @@
           <h1 class="username">{{ userProfile?.nickname || '加载中...' }}</h1>
         </div>
       </div>
-      <router-link v-if="isCurrentUserProfile" to="/setting" class="settings-link">
+      <router-link v-if="isCurrentUserProfile" to="/user/setting" class="settings-link">
         <img src="@/assets/icons/gear-24.svg" alt="用户设置" class="settings-icon">
         <span>用户设置</span>
       </router-link>
@@ -33,14 +33,14 @@
       <div class="confessions-list" v-if="confessions.length > 0">
         <div v-for="confession in confessions" :key="confession.ID" class="confession-item">
           <div class="confession-main">
-            <router-link :to="`/profile/${confession.userId}`" class="avatar-link">
-              <img :src="confession.authorAvatar || '/default-avatar.jpg'" :alt="confession.authorName" class="author-avatar">
+            <router-link :to="`/user/${confession.userId}`" class="avatar-link">
+              <img :src="userProfile?.avatar || '/default-avatar.jpg'" :alt="confession.authorName" class="author-avatar">
             </router-link>
             <div class="confession-content">
               <div class="content-main">
                 <div class="content-left">
                   <div class="id-section">
-                    <router-link :to="`/post/${confession.ID}`" class="confession-id-link">表白 #{{ confession.ID }}</router-link>
+                    <router-link :to="`/confession/${confession.ID}`" class="confession-id-link">表白 #{{ confession.ID }}</router-link>
                     <div class="stats">
                       <span class="stat-item">
                         <img src="@/assets/icons/eye-24.svg" alt="views" class="stat-icon">
@@ -51,9 +51,9 @@
                         {{ confession.likeCount }}
                       </span>
                     </div>
-                    <div class="author-info">
-                      <router-link :to="`/profile/${confession.userId}`" class="author-link">
-                        <span class="author-name">{{ confession.authorName }}</span>
+                    <div>
+                      <router-link :to="`/user/${confession.userId}`" class="author-link">
+                        <span class="author-name">{{ userProfile.nickname }}</span>
                       </router-link>
                     </div>
                   </div>
@@ -131,7 +131,9 @@ const fetchUserProfile = async () => {
     if (userStore.userInfo && userStore.userInfo.user_id.toString() === userId.value) {
       userProfile.value = userStore.userInfo;
     } else {
-      const response = await request.get(`/api/user/profile/${userId.value}`);
+      const response = await request.get(`/api/user/profile`, {
+        params: { user_id: userId.value }
+      });
       userProfile.value = response.data;
     }
     // 更新页面标题
@@ -170,17 +172,15 @@ const fetchConfessions = async () => {
     const sortedConfessions = response.data.data.sort((a, b) => b.ID - a.ID);
 
     // 为每个表白获取作者昵称
-    const confessionsWithNickname = await Promise.all(
+    const confessionsWithAuthorInfo = await Promise.all(
       sortedConfessions.map(async (confession) => {
-        const nickname = await fetchAuthorInfo(confession.userId);
         return {
-          ...confession,
-          authorName: nickname
+          ...confession
         };
       })
     );
 
-    confessions.value = confessionsWithNickname;
+    confessions.value = confessionsWithAuthorInfo;
 
     // 如果后端返回了总数，使用后端返回的总数计算总页数
     totalPages.value = response.data.total 
@@ -371,8 +371,8 @@ onMounted(() => {
   display: block;
   text-decoration: none;
   position: relative;
-  width: 64px;
-  height: 64px;
+  width: 76px;
+  height: 76px;
 }
 
 .avatar-link::after {
@@ -392,8 +392,8 @@ onMounted(() => {
 }
 
 .author-avatar {
-  width: 64px;
-  height: 64px;
+  width: 76px;
+  height: 76px;
   border-radius: 50%;
   object-fit: cover;
   border: 3px solid white;
@@ -458,10 +458,6 @@ onMounted(() => {
   width: 16px;
   height: 16px;
   opacity: 0.7;
-}
-
-.author-info {
-  margin-top: 0.5rem;
 }
 
 .author-link {

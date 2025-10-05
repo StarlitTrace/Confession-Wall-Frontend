@@ -135,7 +135,7 @@ export const useUserStore = defineStore('user', () => {
     }
 
     try {
-      const response = await request.put<UpdateNicknameResponse>('/api/user/nickname', {
+      const response = await request.put<UpdateNicknameResponse>('/api/user/profile', {
         nickname: newNickname
       });
 
