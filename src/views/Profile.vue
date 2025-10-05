@@ -9,6 +9,10 @@
           <h1 class="username">{{ userProfile?.nickname || '加载中...' }}</h1>
         </div>
       </div>
+      <router-link v-if="isCurrentUserProfile" to="/setting" class="settings-link">
+        <img src="@/assets/icons/gear-24.svg" alt="用户设置" class="settings-icon">
+        <span>用户设置</span>
+      </router-link>
     </div>
 
     <div class="confessions-container">
@@ -17,9 +21,9 @@
         <div class="page-size-selector">
           每页显示：
           <select v-model="pageLimit">
-            <option value="5">5条</option>
             <option value="10">10条</option>
             <option value="20">20条</option>
+            <option value="30">30条</option>
             <option value="50">50条</option>
             <option value="100">100条</option>
           </select>
@@ -36,7 +40,7 @@
               <div class="content-main">
                 <div class="content-left">
                   <div class="id-section">
-                    <router-link :to="`/post/${confession.ID}`" class="confession-id-link">#{{ confession.ID }}</router-link>
+                    <router-link :to="`/post/${confession.ID}`" class="confession-id-link">表白 #{{ confession.ID }}</router-link>
                     <div class="stats">
                       <span class="stat-item">
                         <img src="@/assets/icons/eye-24.svg" alt="views" class="stat-icon">
@@ -65,7 +69,6 @@
               </div>
             </div>
           </div>
-
         </div>
       </div>
 
@@ -89,7 +92,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
 import request from '@/utils/request';
@@ -102,6 +105,10 @@ const confessions = ref([]);
 const currentPage = ref(1);
 const pageLimit = ref(10);
 const totalPages = ref(0);
+
+const isCurrentUserProfile = computed(() => {
+  return userStore.userInfo && userStore.userInfo.user_id.toString() === userId.value;
+});
 
 // 格式化日期
 const formatDate = (dateString) => {
@@ -142,10 +149,10 @@ const fetchAuthorInfo = async (userId) => {
     if (result.success) {
       return result.data.nickname;
     }
-    return '未知用户';
+    return '未知用户 #' + userId;
   } catch (error) {
     console.error('获取用户信息失败:', error);
-    return '未知用户';
+    return '未知用户 #' + userId;
   }
 };
 
@@ -230,6 +237,35 @@ onMounted(() => {
   overflow: hidden;
 }
 
+.settings-link {
+  position: absolute;
+  bottom: 1.5rem;
+  right: 2rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+}
+
+.settings-link:hover {
+  border-color: #3498db;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.settings-icon {
+  width: 20px;
+  height: 20px;
+  filter: invert(1);
+}
+
 .profile-header::before {
   content: '';
   position: absolute;
@@ -273,7 +309,7 @@ onMounted(() => {
 }
 
 .user-info {
-  padding-bottom: 1rem;
+  padding-bottom: 0;
 }
 
 .nickname {
@@ -502,4 +538,4 @@ onMounted(() => {
   color: #666;
   font-size: 1.1rem;
 }
-</style>]]>
+</style>
