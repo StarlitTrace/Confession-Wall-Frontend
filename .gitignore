@@ -30,5 +30,5 @@ coverage
 *.tsbuildinfo
 
 # Flies with magical mistakes when being comited by git
-/public/favicons.ico
+/public/favicon.ico
 /public/default-avatar.jpg
