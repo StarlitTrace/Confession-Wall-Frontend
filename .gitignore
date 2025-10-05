@@ -28,3 +28,7 @@ coverage
 *.sw?
 
 *.tsbuildinfo
+
+# Flies with magical mistakes when being comited
+favicons.ico
+default-avatar.jpg
