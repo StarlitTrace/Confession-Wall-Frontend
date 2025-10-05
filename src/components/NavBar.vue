@@ -95,7 +95,7 @@ const clearHideTimeout = () => {
 };
 
 const handleLogout = () => {
-  userStore.logout();
+  userStore.logout(router);
   showDropdown.value = false;
 };</script>
 

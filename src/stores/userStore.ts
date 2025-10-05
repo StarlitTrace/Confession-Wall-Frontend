@@ -70,7 +70,7 @@ export const useUserStore = defineStore('user', () => {
   };
 
   // 登出方法
-  const logout = () => {
+  const logout = (router?: any) => {
     // 清除状态
     token.value = null;
     userInfo.value = null;
@@ -78,6 +78,11 @@ export const useUserStore = defineStore('user', () => {
     // 清除 localStorage 中的数据
     localStorage.removeItem('token');
     localStorage.removeItem('user-store');
+
+    // 如果提供了 router，则进行重定向
+    if (router) {
+      router.push( {name: 'Homepage' } );
+    }
   };
 
   // 获取当前用户信息
