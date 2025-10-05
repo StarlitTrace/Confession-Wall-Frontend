@@ -2,14 +2,14 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import request from '@/utils/request';
 import type {
-  RegisterInfo,
+  RegisterRequest,
   RegisterResponse,
-  LoginInfo,
+  LoginRequest,
   LoginResponse,
   UserProfile,
   UserByIdResponse,
   UpdateNicknameResponse,
-  UpdatePasswordInfo,
+  UpdatePasswordRequest,
   UpdatePasswordResponse,
   UploadAvatarResponse,
   BlockUserResponse,
@@ -28,9 +28,9 @@ export const useUserStore = defineStore('user', () => {
   });
 
   // 注册方法
-  const register = async (registerInfo: RegisterInfo) => {
+  const register = async (registerRequest: RegisterRequest) => {
     try {
-      const response = await request.post<RegisterResponse>('/api/auth/register', registerInfo);
+      const response = await request.post<RegisterResponse>('/api/auth/register', registerRequest);
       return {
         success: true,
         data: response.data,
@@ -47,9 +47,9 @@ export const useUserStore = defineStore('user', () => {
   };
 
   // 登录方法
-  const login = async (loginInfo: LoginInfo) => {
+  const login = async (loginRequest: LoginRequest) => {
     try {
-      const response = await request.post<LoginResponse>('/api/auth/login', loginInfo);
+      const response = await request.post<LoginResponse>('/api/auth/login', loginRequest);
 
       // 保存 token 和用户信息
       token.value = response.data.data.token;
@@ -155,13 +155,13 @@ export const useUserStore = defineStore('user', () => {
   }
 
   // 修改密码
-  const updatePassword = async (passwordInfo: UpdatePasswordInfo) => {
+  const updatePassword = async (passwordRequest: UpdatePasswordRequest) => {
     if (!token.value) {
       return { success: false, message: '未登录' };
     }
 
     try {
-      const response = await request.put<UpdatePasswordResponse>('/api/user/password', passwordInfo);
+      const response = await request.put<UpdatePasswordResponse>('/api/user/password', passwordRequest);
 
       if (response.data.code === 200) {
         // 如果返回了新的 token，更新本地 token

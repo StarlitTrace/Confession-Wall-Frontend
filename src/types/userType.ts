@@ -1,5 +1,5 @@
 // 注册信息
-export interface RegisterInfo {
+export interface RegisterRequest {
   username: string;
   password: string;
   nickname: string;
@@ -13,7 +13,7 @@ export interface RegisterResponse {
 }
 
 // 登录信息
-export interface LoginInfo {
+export interface LoginRequest {
   username: string;
   password: string;
 }
@@ -48,7 +48,7 @@ export interface UserByIdResponse {
 }
 
 // 修改昵称
-export interface UpdateNicknameInfo {
+export interface UpdateNicknameRequest {
   nickname: string;
 }
 
@@ -64,7 +64,7 @@ export interface UpdateNicknameResponse {
 }
 
 // 修改密码
-export interface UpdatePasswordInfo {
+export interface UpdatePasswordRequest {
   old_password: string;
   new_password: string;
 }
@@ -86,7 +86,7 @@ export interface UploadAvatarResponse {
 }
 
 // 拉黑用户
-export interface BlockUserInfo {
+export interface BlockUserRequest {
   user_id: number;
 }
 
