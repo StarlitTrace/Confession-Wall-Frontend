@@ -46,10 +46,6 @@
                         <img src="@/assets/icons/thumbsup-24.svg" alt="likes" class="stat-icon">
                         {{ confession.likeCount }}
                       </span>
-                      <span class="stat-item">
-                        <img src="@/assets/icons/comment-24.svg" alt="comments" class="stat-icon">
-                        {{ confession.commentCount || 0 }} <!--等待后端添加 commentCount 字段-->
-                      </span>
                     </div>
                     <div class="author-info">
                       <router-link :to="`/profile/${confession.userId}`" class="author-link">
