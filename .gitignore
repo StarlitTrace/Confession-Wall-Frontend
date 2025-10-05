@@ -29,6 +29,6 @@ coverage
 
 *.tsbuildinfo
 
-# Flies with magical mistakes when being comited
-favicons.ico
-default-avatar.jpg
+# Flies with magical mistakes when being comited by git
+/public/favicons.ico
+/public/default-avatar.jpg
